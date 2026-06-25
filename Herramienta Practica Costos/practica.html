@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Análisis de Situación Financiera</title>
+<style>
+  :root {
+    --azul: #1e3a8a;
+    --azul-claro: #dbeafe;
+    --verde: #065f46;
+    --verde-claro: #d1fae5;
+    --gris: #374151;
+    --gris-claro: #f3f4f6;
+    --borde: #d1d5db;
+    --var-color: #2563eb;
+    --calc-color: #1f2937;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #1f2937;
+    background: #f8fafc;
+    min-height: 100vh;
+  }
+  .pantalla-inicio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 32px;
+    padding: 24px;
+    text-align: center;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e3a8a 100%);
+    color: white;
+  }
+  .pantalla-inicio h1 {
+    font-size: 2rem;
+    max-width: 600px;
+    line-height: 1.3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .pantalla-inicio .subtitulo {
+    font-size: 1rem;
+    opacity: 0.85;
+  }
+  .btn-iniciar {
+    background: white;
+    color: var(--azul);
+    border: none;
+    padding: 16px 56px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-iniciar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+  }
+  .btn-iniciar:active { transform: translateY(0); }
+
+  .pantalla-ejercicio { display: none; padding: 28px 20px 40px; max-width: 1200px; margin: 0 auto; }
+  .header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .header-bar h1 { font-size: 1.15rem; color: var(--azul); }
+  .btn-nuevo {
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 10px 28px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-nuevo:hover { background: #1e40af; }
+
+  .seed-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+  .seed-box label { color: #6b7280; font-weight: 500; }
+  .seed-input {
+    width: 90px;
+    text-align: center;
+    padding: 5px 6px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  .seed-input:focus { outline: none; border-color: var(--azul); }
+  .btn-seed {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-seed:hover { background: #047857; }
+  .btn-copiar {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-copiar:hover { background: #4b5563; }
+
+  .seccion {
+    margin-bottom: 28px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .seccion-titulo {
+    background: var(--azul);
+    color: white;
+    padding: 11px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .seccion-titulo.verde { background: var(--verde); }
+  .seccion-titulo.morado { background: #5b21b6; }
+
+  .tabla-wrap { overflow-x: auto; padding: 4px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    min-width: 700px;
+  }
+  th {
+    background: #eef2ff;
+    color: var(--azul);
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid var(--azul);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  th.col-anio { text-align: right; width: 95px; }
+  td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+  }
+  td.detalle { font-weight: 500; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.sep { border-left: 2px solid #cbd5e1; padding: 0; width: 1px; }
+
+  .var-num { color: #1f2937; }
+  .calc-num { color: #1f2937; }
+
+  .fila-seccion td {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--azul);
+    background: #eef2ff;
+    border-bottom: 1.5px solid var(--borde);
+  }
+  .fila-total td {
+    font-weight: 700;
+    border-top: 2px solid var(--azul);
+    border-bottom: 2px solid var(--azul);
+    background: #f0f4ff;
+    color: var(--azul);
+  }
+  .fila-total td.calc-num { color: var(--azul); }
+  .fila-total-fuerte td { border-top-width: 3px; }
+
+  .notas-contenido {
+    padding: 16px 20px;
+    line-height: 1.9;
+    font-size: 0.9rem;
+  }
+  .notas-contenido p { margin: 4px 0; }
+
+  .btn-nuevo-abajo { margin-top: 20px; text-align: center; }
+
+  .btn-flotante {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+    opacity: 0.88;
+    transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    display: none;
+  }
+  .btn-flotante:hover { opacity: 1; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.28); }
+  .btn-flotante:active { transform: translateY(0); }
+
+  /* Menú lateral sticky */
+  .menu-lateral {
+    position: fixed;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: none;
+  }
+  .menu-toggle {
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 14px 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px 0 0 8px;
+    writing-mode: vertical-lr;
+    letter-spacing: 0.1em;
+  }
+  .menu-links {
+    display: none;
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 8px 0 0 8px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-left: 2px;
+  }
+  .menu-links.abierto { display: block; }
+  .menu-link {
+    display: block;
+    padding: 9px 18px;
+    color: var(--azul);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+  }
+  .menu-link:hover { background: #eef2ff; }
+  .menu-link:last-child { border-bottom: none; }
+
+  /* Sección de verificación */
+  #secVerificacion { scroll-margin-top: 20px; }
+  .verif-grupo {
+    margin-bottom: 18px;
+  }
+  .verif-grupo-titulo {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--azul);
+    border-bottom: 1.5px solid var(--azul);
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+  }
+  .verif-fila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 0.84rem;
+    flex-wrap: wrap;
+  }
+  .verif-fila:nth-child(even) { background: #f8fafc; border-radius: 4px; }
+  .verif-fila:nth-child(odd) { background: white; }
+  .verif-num {
+    width: 24px;
+    color: #6b7280;
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+  }
+  .verif-label {
+    flex: 1;
+    min-width: 100px;
+    font-size: 0.82rem;
+  }
+  .tooltip-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .tooltip-btn {
+    width: 19px; height: 19px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .tooltip-btn:hover,
+  .tooltip-btn.activo {
+    background: #374151;
+    color: white;
+    border-color: #374151;
+  }
+  .tooltip-texto {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: #f9fafb;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+  .tooltip-texto::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1f2937;
+  }
+  .tooltip-wrap:hover .tooltip-texto,
+  .tooltip-btn.activo + .tooltip-texto {
+    opacity: 1;
+  }
+  .verif-input {
+    width: 115px;
+    text-align: right;
+    padding: 5px 8px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .verif-input:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 2px rgba(30,58,138,0.12);
+  }
+  .verif-input.correcto { border-color: #059669; background: #ecfdf5; }
+  .verif-input.incorrecto { border-color: #dc2626; background: #fef2f2; }
+  .verif-res {
+    width: 20px;
+    text-align: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+  .verif-res.ok { color: #059669; }
+  .verif-res.fail { color: #dc2626; }
+  .verif-esperado {
+    font-size: 0.75rem;
+    color: #dc2626;
+    flex-shrink: 0;
+  }
+
+  .verif-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 8px 0;
+  }
+  .verif-tabla th {
+    background: #eef2ff;
+    padding: 6px 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--azul);
+    border-bottom: 1.5px solid var(--azul);
+    text-align: center;
+  }
+  .verif-tabla td {
+    padding: 5px 6px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .verif-tabla td.detalle { text-align: left; font-weight: 500; font-size: 0.78rem; }
+  .verif-tabla td.valor { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .verif-tabla td.input-cell { padding: 3px 4px; }
+  .verif-tabla input.tabla-input {
+    width: 80px;
+    text-align: right;
+    padding: 4px 5px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    transition: border-color 0.15s;
+  }
+  .verif-tabla input.tabla-input:focus {
+    outline: none;
+    border-color: var(--azul);
+    box-shadow: 0 0 0 2px rgba(30,58,138,0.1);
+  }
+  .verif-tabla input.tabla-input.correcto { border-color: #059669; background: #ecfdf5; }
+  .verif-tabla input.tabla-input.incorrecto { border-color: #dc2626; background: #fef2f2; }
+  .verif-tabla .fila-total td {
+    font-weight: 700;
+    border-top: 2px solid var(--azul);
+  }
+  .verif-tabla .celda-fija {
+    font-weight: 400;
+    color: #374151;
+    font-size: 0.78rem;
+  }
+  .verif-tabla td.res-ok { color: #059669; font-weight: 700; }
+  .verif-tabla td.res-fail { color: #dc2626; font-weight: 700; }
+
+  .btn-verificar {
+    display: block;
+    margin: 22px auto;
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 12px 48px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-verificar:hover { background: #047857; }
+  .btn-verificar:active { background: #065f46; }
+
+  @media print {
+    @page { size: A4; margin: 10mm; }
+    * { background: transparent !important; box-shadow: none !important; }
+    body { font-size: 8.5pt; color: #000; line-height: 1.3; }
+    .pantalla-ejercicio { padding: 0; max-width: 100%; }
+    .header-bar { margin-bottom: 4mm; }
+    .header-bar h1 { font-size: 11pt; color: #000 !important; }
+    .btn-nuevo, .btn-nuevo-abajo, .btn-flotante, .menu-lateral, .btn-verificar, .seed-box { display: none !important; }
+    #secVerificacion { display: none !important; }
+
+    .seccion {
+      margin-bottom: 3mm;
+      border: 1.5pt solid #333;
+      border-radius: 0;
+      break-inside: avoid;
+    }
+    .seccion-titulo {
+      font-size: 8pt;
+      padding: 3pt 8pt;
+      color: #000 !important;
+      font-weight: 700;
+      border-bottom: 1.5pt solid #333;
+      letter-spacing: 0;
+    }
+
+    table { font-size: 7pt; min-width: 0; width: 100%; }
+    th {
+      font-size: 6.5pt;
+      padding: 2pt 4pt;
+      border-bottom: 1.2pt solid #000;
+      color: #000 !important;
+      font-weight: 700;
+    }
+    th.col-anio { text-align: right; width: auto; }
+    td {
+      padding: 1.5pt 4pt;
+      border-bottom: 0.4pt solid #999;
+      font-size: 7pt;
+    }
+    td.detalle { font-size: 6.5pt; }
+    td.num { font-size: 7pt; }
+    td.sep { border-left: 1pt solid #999; padding: 0; width: 1pt; }
+
+    .var-num { color: #000 !important; }
+    .calc-num { color: #000 !important; }
+    .fila-total td,
+    .fila-total td.calc-num,
+    .fila-seccion td {
+      color: #000 !important;
+    }
+    .fila-total td {
+      font-weight: 700;
+      border-top: 1.5pt solid #000 !important;
+      border-bottom: 1.5pt solid #000 !important;
+    }
+    .fila-seccion td {
+      font-size: 7pt;
+      font-weight: 700;
+      border-bottom: 1pt solid #333 !important;
+    }
+
+    .notas-contenido { padding: 6pt 8pt; font-size: 7pt; line-height: 1.4; }
+    .notas-contenido p { margin: 2pt 0; }
+    .notas-contenido .var-num { color: #000; }
+    .notas-contenido .calc-num { color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pantalla-inicio" id="pantallaInicio">
+  <h1>Práctica de Análisis de Situación Financiera</h1>
+  <p class="subtitulo">Ejercicios aleatorios con formato de cátedra</p>
+  <button class="btn-iniciar" id="btnIniciar">Iniciar</button>
+</div>
+
+<div class="pantalla-ejercicio" id="pantallaEjercicio">
+  <div class="menu-lateral" id="menuLateral">
+    <button class="menu-toggle" id="menuToggle">MEN&#218;</button>
+    <div class="menu-links" id="menuLinks">
+      <span class="menu-link" data-target="secBalance">Ir al Estado de Situación</span>
+      <span class="menu-link" data-target="secVerificacion">Ir al Formulario</span>
+    </div>
+  </div>
+
+  <div class="header-bar">
+    <h1 id="tituloEjercicio"></h1>
+    <div class="seed-box" id="seedBox" style="display:none">
+      <label for="seedInput">Seed:</label>
+      <input type="text" class="seed-input" id="seedInput" placeholder="000000">
+      <button class="btn-copiar" id="btnCopiarSeed" title="Copiar seed">Copiar</button>
+      <button class="btn-seed" id="btnCargarSeed">Cargar</button>
+    </div>
+    <button class="btn-nuevo" id="btnNuevo">Nuevo Ejercicio</button>
+  </div>
+
+  <div class="seccion" id="secBalance">
+    <div class="seccion-titulo">ESTADO DE SITUACIÓN PATRIMONIAL</div>
+    <div class="tabla-wrap"><table id="tablaBalance"></table></div>
+  </div>
+
+  <div class="seccion" id="secResultado">
+    <div class="seccion-titulo verde">ESTADO DE RESULTADOS</div>
+    <div class="tabla-wrap"><table id="tablaResultado"></table></div>
+  </div>
+
+  <div class="seccion" id="secCostos">
+    <div class="seccion-titulo morado">COSTO DE VENTAS</div>
+    <div class="tabla-wrap"><table id="tablaCostos"></table></div>
+  </div>
+
+  <div class="seccion" id="secNotas">
+    <div class="seccion-titulo">NOTAS</div>
+    <div class="notas-contenido" id="contenidoNotas"></div>
+  </div>
+
+  <div class="seccion" id="secVerificacion">
+    <div class="seccion-titulo">VERIFICACIÓN DE CÁLCULOS</div>
+    <div class="tabla-wrap" style="padding:16px 20px;">
+
+      <!-- Grupo A: Corto Plazo -->
+      <div class="verif-grupo" id="grupoA"><div class="verif-grupo-titulo">A — Análisis de Corto Plazo</div></div>
+
+      <!-- Grupo B: PPPRAC -->
+      <div class="verif-grupo" id="grupoB">
+        <div class="verif-grupo-titulo">B — PPPRAC (Plazo Promedio Ponderado de Realización del Activo Corriente)</div>
+        <table class="verif-tabla" id="tablaPPPrac"><thead><tr><th>Componente</th><th>Valor ($)</th><th>Peso</th><th>Días realiz.</th><th>Resultado</th></tr></thead><tbody id="tbodyPPPrac"></tbody></table>
+      </div>
+
+      <!-- Grupo C: PPPEPC -->
+      <div class="verif-grupo" id="grupoC">
+        <div class="verif-grupo-titulo">C — PPPEPC (Plazo Promedio Ponderado de Exigibilidad del Pasivo Corriente)</div>
+        <table class="verif-tabla" id="tablaPPPepc"><thead><tr><th>Componente</th><th>Valor ($)</th><th>Peso</th><th>Días exigib.</th><th>Resultado</th></tr></thead><tbody id="tbodyPPPepc"></tbody></table>
+      </div>
+
+      <!-- Grupo D: Liquidez Necesaria -->
+      <div class="verif-grupo" id="grupoD"><div class="verif-grupo-titulo">D — Liquidez Necesaria</div></div>
+
+      <!-- Grupo E: Largo Plazo -->
+      <div class="verif-grupo" id="grupoE"><div class="verif-grupo-titulo">E — Análisis de Largo Plazo</div></div>
+
+      <!-- Grupo F: Rentabilidad -->
+      <div class="verif-grupo" id="grupoF"><div class="verif-grupo-titulo">F — Rentabilidad</div></div>
+
+      <button class="btn-verificar" id="btnVerificar">Verificar</button>
+    </div>
+  </div>
+
+  <div class="btn-nuevo-abajo">
+    <button class="btn-nuevo" id="btnNuevoAbajo">Nuevo Ejercicio</button>
+  </div>
+
+  <button class="btn-flotante" id="btnFlotante" title="Imprimir / Descargar PDF">Imprimir</button>
+</div>
+
+<script>
+(function() {
+  const pantallaInicio = document.getElementById('pantallaInicio');
+  const pantallaEjercicio = document.getElementById('pantallaEjercicio');
+  const btnFlotante = document.getElementById('btnFlotante');
+  const tituloEjercicio = document.getElementById('tituloEjercicio');
+  const tablaBalance = document.getElementById('tablaBalance');
+  const tablaResultado = document.getElementById('tablaResultado');
+  const tablaCostos = document.getElementById('tablaCostos');
+  const contenidoNotas = document.getElementById('contenidoNotas');
+  const menuLateral = document.getElementById('menuLateral');
+  const menuToggle = document.getElementById('menuToggle');
+  const menuLinks = document.getElementById('menuLinks');
+  const grupoA = document.getElementById('grupoA');
+  const grupoD = document.getElementById('grupoD');
+  const grupoE = document.getElementById('grupoE');
+  const grupoF = document.getElementById('grupoF');
+  const tbodyPPPrac = document.getElementById('tbodyPPPrac');
+  const tbodyPPPepc = document.getElementById('tbodyPPPepc');
+  const btnVerificar = document.getElementById('btnVerificar');
+  const seedBox = document.getElementById('seedBox');
+  const seedInput = document.getElementById('seedInput');
+  const btnCargarSeed = document.getElementById('btnCargarSeed');
+  const btnCopiarSeed = document.getElementById('btnCopiarSeed');
+
+  let _rng = Math.random;
+
+  function crearPRNG(semilla) {
+    var s = Math.abs(semilla | 0) || 1;
+    return function() {
+      s = s + 0x6D2B79F5 | 0;
+      var t = Math.imul(s ^ s >>> 15, 1 | s);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function r(min, max) { return Math.floor(_rng() * (max - min + 1)) + min; }
+  function rr(min, max, round) { return Math.round(r(min, max) / round) * round; }
+
+  function fmt(n) {
+    return n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function vn(n) { return '<span class="var-num">' + fmt(n) + '</span>'; }
+  function cn(n) { return '<span class="calc-num">' + fmt(n) + '</span>'; }
+  function nc(n, isVar) { return isVar ? vn(n) : cn(n); }
+
+  function generar() {
+    const hoy = new Date();
+    const A1 = hoy.getFullYear();
+    const A2 = A1 - 1;
+
+    // -------------------------------------------------------
+    // COSTO DE VENTAS — genera primero por el vínculo entre períodos
+    // -------------------------------------------------------
+    // Año 2 (anterior) — base
+    const ei2  = rr(5000, 18000, 5);
+    const compras2 = rr(350000, 700000, 50);
+    const ef2  = rr(25000, 55000, 5);
+    const cv2  = ei2 + compras2 - ef2;
+
+    // Año 1 (actual) — Existencia Inicial = Existencia Final del año anterior
+    const ei1  = ef2;
+    const compras1 = rr(Math.floor(compras2 * 0.8), Math.floor(compras2 * 1.4), 50);
+    const ef1  = rr(30000, 65000, 5);
+    const cv1  = ei1 + compras1 - ef1;
+
+    // -------------------------------------------------------
+    // BALANCE — Año 2
+    // -------------------------------------------------------
+    const caja2          = rr(8000, 20000, 5);
+    const creditos2      = rr(15000, 40000, 5);
+    const otrosCreditos2 = rr(1000, 8000, 5);
+    const bCambio2       = ef2;
+    const bUso2          = rr(40000, 130000, 10);
+    const dComPC2        = rr(5000, 30000, 5);
+    const dLab2          = rr(1000, 6000, 5);
+    const dFisc2         = rr(1000, 6000, 5);
+    const dComPNC2       = rr(500, 3000, 5);
+
+    const ac2  = caja2 + creditos2 + otrosCreditos2 + bCambio2;
+    const anc2 = bUso2;
+    const at2  = ac2 + anc2;
+    const pc2  = dComPC2 + dLab2 + dFisc2;
+    const pnc2 = dComPNC2;
+    const pt2  = pc2 + pnc2;
+    const pn2  = at2 - pt2;
+
+    // -------------------------------------------------------
+    // BALANCE — Año 1
+    // -------------------------------------------------------
+    const caja1          = rr(Math.floor(caja2 * 0.8), Math.floor(caja2 * 3.0), 5);
+    const creditos1      = rr(Math.floor(creditos2 * 0.8), Math.floor(creditos2 * 2.0), 5);
+    const otrosCreditos1 = rr(Math.floor(otrosCreditos2 * 0.7), Math.floor(otrosCreditos2 * 2.5), 5);
+    const bCambio1       = ef1;
+    const bUso1          = rr(Math.floor(bUso2 * 0.9), Math.floor(bUso2 * 2.5), 10);
+    const dComPC1        = rr(Math.floor(dComPC2 * 0.7), Math.floor(dComPC2 * 3.0), 5);
+    const dLab1          = rr(Math.floor(dLab2 * 0.7), Math.floor(dLab2 * 4.0), 5);
+    const dFisc1         = rr(Math.floor(dFisc2 * 0.7), Math.floor(dFisc2 * 3.5), 5);
+    const dComPNC1       = rr(Math.floor(dComPNC2 * 0.8), Math.floor(dComPNC2 * 2.0), 5);
+
+    const ac1  = caja1 + creditos1 + otrosCreditos1 + bCambio1;
+    const anc1 = bUso1;
+    const at1  = ac1 + anc1;
+    const pc1  = dComPC1 + dLab1 + dFisc1;
+    const pnc1 = dComPNC1;
+    const pt1  = pc1 + pnc1;
+    const pn1  = at1 - pt1;
+
+    // -------------------------------------------------------
+    // ESTADO DE RESULTADOS — Año 2
+    // -------------------------------------------------------
+    const ventas2_r = rr(Math.floor(cv2 * 1.08), Math.floor(cv2 * 1.55), 50);
+    const rb2 = ventas2_r - cv2;
+    const gAdm2 = rr(3000, Math.max(3001, Math.floor(rb2 * 0.15)), 5);
+    const gCom2 = rr(5000, Math.max(5001, Math.floor(rb2 * 0.30)), 5);
+    const maxInt2 = Math.max(1000, rb2 - gAdm2 - gCom2 - 5000);
+    const intereses2_r = rr(1000, Math.min(25000, maxInt2), 5);
+    const resultado2 = rb2 - gAdm2 - gCom2 - intereses2_r;
+
+    // -------------------------------------------------------
+    // ESTADO DE RESULTADOS — Año 1
+    // -------------------------------------------------------
+    const ventas1_r = rr(Math.floor(cv1 * 1.08), Math.floor(cv1 * 1.55), 50);
+    const rb1 = ventas1_r - cv1;
+    const gAdm1 = rr(3000, Math.max(3001, Math.floor(rb1 * 0.15)), 5);
+    const gCom1 = rr(5000, Math.max(5001, Math.floor(rb1 * 0.30)), 5);
+    const maxInt1 = Math.max(1000, rb1 - gAdm1 - gCom1 - 5000);
+    const intereses1_r = rr(1000, Math.min(25000, maxInt1), 5);
+    const resultado1 = rb1 - gAdm1 - gCom1 - intereses1_r;
+
+    // -------------------------------------------------------
+    // NOTAS
+    // -------------------------------------------------------
+    const diasOtrosCreditos = rr(30, 120, 5);
+    const diasLab = 5;
+    const diasFisc = 20;
+    const pctVtasCredito = rr(30, 85, 5);
+    const pctComprasContado = rr(20, 85, 5);
+
+    return {
+      A1, A2,
+      // Balance
+      caja1, caja2, creditos1, creditos2,
+      otrosCreditos1, otrosCreditos2, bCambio1, bCambio2,
+      bUso1, bUso2,
+      dComPC1, dComPC2, dLab1, dLab2, dFisc1, dFisc2,
+      dComPNC1, dComPNC2,
+      ac1, ac2, anc1, anc2, at1, at2,
+      pc1, pc2, pnc1, pnc2, pt1, pt2, pn1, pn2,
+      // Resultado
+      ventas1_r, ventas2_r, cv1, cv2, rb1, rb2,
+      gAdm1, gAdm2, gCom1, gCom2,
+      intereses1_r, intereses2_r, resultado1, resultado2,
+      // Costo de Ventas
+      ei1, ei2, compras1, compras2, ef1, ef2,
+      // Notas
+      diasOtrosCreditos, diasLab, diasFisc,
+      pctVtasCredito, pctComprasContado
+    };
+  }
+
+  function construirBalance(d) {
+    const A1 = d.A1, A2 = d.A2;
+
+    const th = (t) => '<th>' + t + '</th>';
+    const thR = (t) => '<th class="col-anio">' + t + '</th>';
+
+    let html = '<thead><tr>';
+    html += th('ACTIVO') + thR(A1) + thR(A2) + '<td class="sep"></td>';
+    html += th('PASIVO') + thR(A1) + thR(A2);
+    html += '</tr></thead><tbody>';
+
+    // Sección: Activo Corriente / Pasivo Corriente
+    html += '<tr class="fila-seccion">';
+    html += '<td class="detalle" colspan="3">ACTIVO CORRIENTE</td><td class="sep"></td>';
+    html += '<td class="detalle" colspan="3">PASIVO CORRIENTE</td>';
+    html += '</tr>';
+
+    function filaPar(izq, v1, v2, der, w1, w2, v1var, v2var, w1var, w2var) {
+      return '<tr>'
+        + '<td class="detalle">' + izq + '</td>'
+        + '<td class="num ' + (v1var ? 'var-num' : 'calc-num') + '">' + fmt(v1) + '</td>'
+        + '<td class="num ' + (v2var ? 'var-num' : 'calc-num') + '">' + fmt(v2) + '</td>'
+        + '<td class="sep"></td>'
+        + '<td class="detalle">' + der + '</td>'
+        + '<td class="num ' + (w1var ? 'var-num' : 'calc-num') + '">' + fmt(w1) + '</td>'
+        + '<td class="num ' + (w2var ? 'var-num' : 'calc-num') + '">' + fmt(w2) + '</td>'
+        + '</tr>';
+    }
+
+    html += filaPar('Caja y Bancos',       d.caja1, d.caja2,    'Deudas Comerciales',        d.dComPC1, d.dComPC2, true,true,true,true);
+    html += filaPar('Créditos por Ventas (Nota 4)', d.creditos1, d.creditos2, 'Deudas Laborales (Nota 2)', d.dLab1, d.dLab2, true,true,true,true);
+    html += filaPar('Otros Créditos (Nota 1)',      d.otrosCreditos1, d.otrosCreditos2, 'Deudas Fiscales (Nota 3)', d.dFisc1, d.dFisc2, true,true,true,true);
+    html += '<tr>'
+      + '<td class="detalle">Bienes de Cambio</td>'
+      + '<td class="num var-num">' + fmt(d.bCambio1) + '</td>'
+      + '<td class="num var-num">' + fmt(d.bCambio2) + '</td>'
+      + '<td class="sep"></td>'
+      + '<td></td><td></td><td></td>'
+      + '</tr>';
+
+    // Totales AC/PC
+    html += '<tr class="fila-total">'
+      + '<td class="detalle">Total Activo Corriente</td>'
+      + '<td class="num calc-num">' + fmt(d.ac1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.ac2) + '</td>'
+      + '<td class="sep"></td>'
+      + '<td class="detalle">Total Pasivo Corriente</td>'
+      + '<td class="num calc-num">' + fmt(d.pc1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.pc2) + '</td>'
+      + '</tr>';
+
+    // Sección: Activo No Corriente / Pasivo No Corriente
+    html += '<tr class="fila-seccion">';
+    html += '<td class="detalle" colspan="3">ACTIVO NO CORRIENTE</td><td class="sep"></td>';
+    html += '<td class="detalle" colspan="3">PASIVO NO CORRIENTE</td>';
+    html += '</tr>';
+
+    html += filaPar('Bienes de Uso', d.bUso1, d.bUso2, 'Deudas Comerciales', d.dComPNC1, d.dComPNC2, true,true,true,true);
+
+    // Totales ANC/PNC
+    html += '<tr class="fila-total">'
+      + '<td class="detalle">Total Activo No Corriente</td>'
+      + '<td class="num calc-num">' + fmt(d.anc1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.anc2) + '</td>'
+      + '<td class="sep"></td>'
+      + '<td class="detalle">Total Pasivo No Corriente</td>'
+      + '<td class="num calc-num">' + fmt(d.pnc1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.pnc2) + '</td>'
+      + '</tr>';
+
+    // Total Activo / Total Pasivo
+    html += '<tr class="fila-total fila-total-fuerte">'
+      + '<td class="detalle">TOTAL ACTIVO</td>'
+      + '<td class="num calc-num">' + fmt(d.at1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.at2) + '</td>'
+      + '<td class="sep"></td>'
+      + '<td class="detalle">TOTAL PASIVO</td>'
+      + '<td class="num calc-num">' + fmt(d.pt1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.pt2) + '</td>'
+      + '</tr>';
+
+    // Patrimonio Neto (solo lado derecho)
+    html += '<tr class="fila-total">'
+      + '<td></td><td></td><td></td>'
+      + '<td class="sep"></td>'
+      + '<td class="detalle">PATRIMONIO NETO</td>'
+      + '<td class="num calc-num">' + fmt(d.pn1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.pn2) + '</td>'
+      + '</tr>';
+
+    // Pasivo + Pat. Neto (solo lado derecho)
+    html += '<tr class="fila-total">'
+      + '<td></td><td></td><td></td>'
+      + '<td class="sep"></td>'
+      + '<td class="detalle">PASIVO + PAT. NETO</td>'
+      + '<td class="num calc-num">' + fmt(d.at1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.at2) + '</td>'
+      + '</tr>';
+
+    html += '</tbody>';
+    tablaBalance.innerHTML = html;
+  }
+
+  function construirResultado(d) {
+    const A1 = d.A1, A2 = d.A2;
+
+    let html = '<thead><tr>';
+    html += '<th>Detalle</th><th class="col-anio">' + A1 + '</th><th class="col-anio">' + A2 + '</th>';
+    html += '</tr></thead><tbody>';
+
+    function fr(label, v1, v2, isVar1, isVar2) {
+      return '<tr>'
+        + '<td class="detalle">' + label + '</td>'
+        + '<td class="num ' + (isVar1 ? 'var-num' : 'calc-num') + '">' + fmt(v1) + '</td>'
+        + '<td class="num ' + (isVar2 ? 'var-num' : 'calc-num') + '">' + fmt(v2) + '</td>'
+        + '</tr>';
+    }
+
+    html += fr('Ventas (Nota 4)',               d.ventas1_r, d.ventas2_r,   true, true);
+    html += fr('Costo de Ventas (Nota 5)',       -d.cv1,      -d.cv2,        false, false);
+    html += '<tr class="fila-total">'
+      + '<td class="detalle">Resultado Bruto</td>'
+      + '<td class="num calc-num">' + fmt(d.rb1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.rb2) + '</td>'
+      + '</tr>';
+    html += fr('Gastos de Administración',      -d.gAdm1,    -d.gAdm2,      true, true);
+    html += fr('Gastos de Comercialización',    -d.gCom1,    -d.gCom2,      true, true);
+    html += fr('Intereses (Gastos Financieros)', -d.intereses1_r, -d.intereses2_r, true, true);
+    html += '<tr class="fila-total">'
+      + '<td class="detalle">Resultado del Ejercicio</td>'
+      + '<td class="num calc-num">' + fmt(d.resultado1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.resultado2) + '</td>'
+      + '</tr>';
+
+    html += '</tbody>';
+    tablaResultado.innerHTML = html;
+  }
+
+  function construirCostos(d) {
+    const A1 = d.A1, A2 = d.A2;
+
+    let html = '<thead><tr>';
+    html += '<th>Detalle</th><th class="col-anio">' + A1 + '</th><th class="col-anio">' + A2 + '</th>';
+    html += '</tr></thead><tbody>';
+
+    function fc(label, v1, v2, isVar1, isVar2) {
+      return '<tr>'
+        + '<td class="detalle">' + label + '</td>'
+        + '<td class="num ' + (isVar1 ? 'var-num' : 'calc-num') + '">' + fmt(v1) + '</td>'
+        + '<td class="num ' + (isVar2 ? 'var-num' : 'calc-num') + '">' + fmt(v2) + '</td>'
+        + '</tr>';
+    }
+
+    html += fc('Existencia Inicial de Mercaderías', d.ei1, d.ei2, true, true);
+    html += fc('Compras (Nota 5)',                  d.compras1, d.compras2, true, true);
+    html += fc('Existencia Final de Mercaderías',   -d.ef1, -d.ef2, true, true);
+    html += '<tr class="fila-total">'
+      + '<td class="detalle">Costo de Ventas</td>'
+      + '<td class="num calc-num">' + fmt(d.cv1) + '</td>'
+      + '<td class="num calc-num">' + fmt(d.cv2) + '</td>'
+      + '</tr>';
+
+    html += '</tbody>';
+    tablaCostos.innerHTML = html;
+  }
+
+  function construirNotas(d) {
+    let html = '';
+    html += '<p><strong>Nota 1:</strong> El saldo de Otros Créditos se cobra a los <span class="var-num">' + d.diasOtrosCreditos + '</span> días contados a partir del cierre de ejercicio.</p>';
+    html += '<p><strong>Nota 2:</strong> Las Deudas Laborales vencen a los <span class="calc-num">' + d.diasLab + '</span> días contados a partir del cierre de ejercicio.</p>';
+    html += '<p><strong>Nota 3:</strong> El saldo de Deudas Fiscales vence a los <span class="calc-num">' + d.diasFisc + '</span> días contados a partir del cierre de ejercicio.</p>';
+    html += '<p><strong>Nota 4:</strong> Del total de ventas, el <span class="var-num">' + d.pctVtasCredito + '%</span> se realizó a crédito (cuenta corriente).</p>';
+    html += '<p><strong>Nota 5:</strong> Del total de compras realizadas, el <span class="var-num">' + d.pctComprasContado + '%</span> se realizó a contado.</p>';
+    contenidoNotas.innerHTML = html;
+  }
+
+  function redondear(v) { return Math.round(v * 10000) / 10000; }
+  function parsear(s) {
+    if (!s || s.trim() === '') return NaN;
+    return parseFloat(s.trim().replace(',', '.'));
+  }
+  function cmp(esperado, ingresado) {
+    return Math.abs(esperado - ingresado) < 0.001;
+  }
+
+  function calcularEsperados(d) {
+    const smMerc = (d.bCambio1 + d.bCambio2) / 2;
+    const smCred = (d.creditos1 + d.creditos2) / 2;
+    const smDeudas = (d.dComPC1 + d.dComPC2) / 2;
+    const vtasCred = d.ventas1_r * d.pctVtasCredito / 100;
+    const comprasCred = d.compras1 * (100 - d.pctComprasContado) / 100;
+    const bait = d.resultado1 + d.intereses1_r;
+
+    const ilc  = d.ac1 / d.pc1;
+    const ils  = (d.ac1 - d.bCambio1) / d.pc1;
+    const abc  = smMerc > 0 && d.cv1 > 0 ? 365 * smMerc / d.cv1 : 0;
+    const acv  = smCred > 0 && vtasCred > 0 ? 365 * smCred / vtasCred : 0;
+    const pcv  = smCred > 0 && d.ventas1_r > 0 ? 365 * smCred / d.ventas1_r : 0;
+    const ap   = smDeudas > 0 && comprasCred > 0 ? 365 * smDeudas / comprasCred : 0;
+    const ppc  = smDeudas > 0 && d.compras1 > 0 ? 365 * smDeudas / d.compras1 : 0;
+    const cob  = abc + pcv;
+    const con  = cob - ppc;
+    const ct   = d.ac1 - d.pc1;
+
+    // PPPRAC
+    const pppracFilas = [
+      { comp: 'Caja y Bancos',       valor: d.caja1,          peso: d.caja1/d.ac1,          dias: 0,                     res: 0 },
+      { comp: 'Créditos por Ventas', valor: d.creditos1,      peso: d.creditos1/d.ac1,      dias: acv,                   res: (d.creditos1/d.ac1)*acv },
+      { comp: 'Otros Créditos',      valor: d.otrosCreditos1, peso: d.otrosCreditos1/d.ac1, dias: d.diasOtrosCreditos,   res: (d.otrosCreditos1/d.ac1)*d.diasOtrosCreditos },
+      { comp: 'Bienes de Cambio',    valor: d.bCambio1,       peso: d.bCambio1/d.ac1,       dias: abc,                   res: (d.bCambio1/d.ac1)*abc }
+    ];
+    const pppracTotal = pppracFilas.reduce((s,f) => s + f.res, 0);
+
+    // PPPEPC
+    const pppepcFilas = [
+      { comp: 'Deudas Comerciales', valor: d.dComPC1, peso: d.dComPC1/d.pc1, dias: ap,    res: (d.dComPC1/d.pc1)*ap },
+      { comp: 'Deudas Laborales',   valor: d.dLab1,   peso: d.dLab1/d.pc1,   dias: 5,     res: (d.dLab1/d.pc1)*5 },
+      { comp: 'Deudas Fiscales',    valor: d.dFisc1,  peso: d.dFisc1/d.pc1,  dias: 20,    res: (d.dFisc1/d.pc1)*20 }
+    ];
+    const pppepcTotal = pppepcFilas.reduce((s,f) => s + f.res, 0);
+
+    const ln = pppepcTotal > 0 ? pppracTotal / pppepcTotal : 0;
+
+    const ie   = d.pn1 > 0 ? d.pt1 / d.pn1 : 0;
+    const mvp  = d.ventas1_r > 0 ? d.pt1 / (d.ventas1_r / 12) : 0;
+    const ii   = d.at1 > 0 ? d.anc1 / d.at1 : 0;
+    const fi   = d.anc1 > 0 ? d.pn1 / d.anc1 : 0;
+    const rov  = d.ventas1_r > 0 ? d.resultado1 / d.ventas1_r : 0;
+    const roe  = d.pn1 > 0 ? d.resultado1 / d.pn1 : 0;
+    const roa  = d.at1 > 0 ? bait / d.at1 : 0;
+    const mdup = d.ventas1_r > 0 ? bait / d.ventas1_r : 0;
+    const ract = d.at1 > 0 ? d.ventas1_r / d.at1 : 0;
+
+    return { ilc, ils, abc, acv, pcv, ap, ppc, cob, con, ct, ie, mvp, ii, fi, rov, roe, roa, mdup, ract,
+             pppracFilas, pppracTotal, pppepcFilas, pppepcTotal, ln, bait };
+  }
+
+  function renderizarVerificacion(d) {
+    const esp = calcularEsperados(d);
+
+    // Grupo A
+    const indicadoresA = [
+      ['1', 'ILC', 'AC / PC', 'ilc'],
+      ['2', 'ILS', '(AC − BC) / PC', 'ils'],
+      ['3', 'ABC', '365 / (CV / SM Merc.)', 'abc'],
+      ['4', 'ACV', '365 / (Vtas. Créd. / SM Créd.)', 'acv'],
+      ['5', 'PCV', '365 / (Vtas. Tot. / SM Créd.)', 'pcv'],
+      ['6', 'AP', '365 / (Compras Créd. / SM Deudas)', 'ap'],
+      ['7', 'PPC', '365 / (Compras Tot. / SM Deudas)', 'ppc'],
+      ['8', 'COB', 'ABC + PCV', 'cob'],
+      ['9', 'CON', 'COB − PPC', 'con'],
+      ['10', 'CT ($)', 'AC − PC', 'ct']
+    ];
+    let ha = '<div class="verif-grupo-titulo">A — Análisis de Corto Plazo</div>';
+    indicadoresA.forEach(function(row) {
+      ha += '<div class="verif-fila">'
+        + '<span class="verif-num">' + row[0] + '.</span>'
+        + '<span class="verif-label">' + row[1] + '</span>'
+        + '<span class="tooltip-wrap">'
+        + '<span class="tooltip-btn" data-formula="' + row[2].replace(/"/g,'&quot;') + '">?</span>'
+        + '<span class="tooltip-texto">' + row[2] + '</span>'
+        + '</span>'
+        + '<input type="text" class="verif-input" data-id="' + row[3] + '" placeholder="0,0000">'
+        + '<span class="verif-res" data-for="' + row[3] + '"></span>'
+        + '<span class="verif-esperado" data-esp="' + row[3] + '" style="display:none"></span>'
+        + '</div>';
+    });
+    grupoA.innerHTML = ha;
+
+    // Grupo B: PPPRAC
+    let hb = '';
+    esp.pppracFilas.forEach(function(f, i) {
+      hb += '<tr>'
+        + '<td class="detalle">' + f.comp + '</td>'
+        + '<td class="valor">' + fmt(f.valor) + '</td>'
+        + '<td class="input-cell"><input type="text" class="tabla-input" data-id="ppprac-p' + i + '" placeholder="0,0000"></td>'
+        + '<td class="input-cell"><input type="text" class="tabla-input" data-id="ppprac-d' + i + '" placeholder="0"></td>'
+        + '<td class="input-cell"><input type="text" class="tabla-input" data-id="ppprac-r' + i + '" placeholder="0,0000"></td>'
+        + '</tr>';
+    });
+    hb += '<tr class="fila-total">'
+      + '<td class="detalle">TOTAL</td>'
+      + '<td class="valor">' + fmt(d.ac1) + '</td>'
+      + '<td class="celda-fija">1,0000</td>'
+      + '<td class="celda-fija"></td>'
+      + '<td class="input-cell"><input type="text" class="tabla-input" data-id="ppprac-total" placeholder="0,0000"></td>'
+      + '</tr>';
+    tbodyPPPrac.innerHTML = hb;
+
+    // Grupo C: PPPEPC
+    let hc = '';
+    esp.pppepcFilas.forEach(function(f, i) {
+      hc += '<tr>'
+        + '<td class="detalle">' + f.comp + '</td>'
+        + '<td class="valor">' + fmt(f.valor) + '</td>'
+        + '<td class="input-cell"><input type="text" class="tabla-input" data-id="pppepc-p' + i + '" placeholder="0,0000"></td>'
+        + '<td class="input-cell"><input type="text" class="tabla-input" data-id="pppepc-d' + i + '" placeholder="0"></td>'
+        + '<td class="input-cell"><input type="text" class="tabla-input" data-id="pppepc-r' + i + '" placeholder="0,0000"></td>'
+        + '</tr>';
+    });
+    hc += '<tr class="fila-total">'
+      + '<td class="detalle">TOTAL</td>'
+      + '<td class="valor">' + fmt(d.pc1) + '</td>'
+      + '<td class="celda-fija">1,0000</td>'
+      + '<td class="celda-fija"></td>'
+      + '<td class="input-cell"><input type="text" class="tabla-input" data-id="pppepc-total" placeholder="0,0000"></td>'
+      + '</tr>';
+    tbodyPPPepc.innerHTML = hc;
+
+    // Grupo D
+    grupoD.innerHTML = '<div class="verif-grupo-titulo">D — Liquidez Necesaria</div>'
+      + '<div class="verif-fila">'
+      + '<span class="verif-num">LN</span>'
+      + '<span class="verif-label">LN</span>'
+      + '<span class="tooltip-wrap">'
+      + '<span class="tooltip-btn" data-formula="PPPRAC / PPPEPC">?</span>'
+      + '<span class="tooltip-texto">PPPRAC / PPPEPC</span>'
+      + '</span>'
+      + '<input type="text" class="verif-input" data-id="ln" placeholder="0,0000">'
+      + '<span class="verif-res" data-for="ln"></span>'
+      + '<span class="verif-esperado" data-esp="ln" style="display:none"></span>'
+      + '</div>';
+
+    // Grupo E
+    const indicadoresE = [
+      ['11', 'IE', 'Pasivo Total / Patrimonio Neto', 'ie'],
+      ['12', 'Meses Vta. Pasivo', 'PT / (Ventas / 12)', 'mvp'],
+      ['13', 'II', 'Activo No Corriente / Activo Total', 'ii'],
+      ['14', 'FI', 'Patrimonio Neto / Activo No Corriente', 'fi']
+    ];
+    let he = '<div class="verif-grupo-titulo">E — Análisis de Largo Plazo</div>';
+    indicadoresE.forEach(function(row) {
+      he += '<div class="verif-fila">'
+        + '<span class="verif-num">' + row[0] + '.</span>'
+        + '<span class="verif-label">' + row[1] + '</span>'
+        + '<span class="tooltip-wrap">'
+        + '<span class="tooltip-btn" data-formula="' + row[2].replace(/"/g,'&quot;') + '">?</span>'
+        + '<span class="tooltip-texto">' + row[2] + '</span>'
+        + '</span>'
+        + '<input type="text" class="verif-input" data-id="' + row[3] + '" placeholder="0,0000">'
+        + '<span class="verif-res" data-for="' + row[3] + '"></span>'
+        + '<span class="verif-esperado" data-esp="' + row[3] + '" style="display:none"></span>'
+        + '</div>';
+    });
+    grupoE.innerHTML = he;
+
+    // Grupo F
+    const indicadoresF = [
+      ['15', 'ROV', 'Resultado / Ventas', 'rov'],
+      ['16', 'ROE', 'Resultado / Patrimonio Neto', 'roe'],
+      ['17', 'ROA', 'BAIT / Activo Total', 'roa'],
+      ['18', 'Margen Du Pont', 'BAIT / Ventas', 'mdup'],
+      ['19', 'Rotación Activo', 'Ventas / Activo Total', 'ract']
+    ];
+    let hf = '<div class="verif-grupo-titulo">F — Rentabilidad</div>';
+    indicadoresF.forEach(function(row) {
+      hf += '<div class="verif-fila">'
+        + '<span class="verif-num">' + row[0] + '.</span>'
+        + '<span class="verif-label">' + row[1] + '</span>'
+        + '<span class="tooltip-wrap">'
+        + '<span class="tooltip-btn" data-formula="' + row[2].replace(/"/g,'&quot;') + '">?</span>'
+        + '<span class="tooltip-texto">' + row[2] + '</span>'
+        + '</span>'
+        + '<input type="text" class="verif-input" data-id="' + row[3] + '" placeholder="0,0000">'
+        + '<span class="verif-res" data-for="' + row[3] + '"></span>'
+        + '<span class="verif-esperado" data-esp="' + row[3] + '" style="display:none"></span>'
+        + '</div>';
+    });
+    grupoF.innerHTML = hf;
+
+    // Limpiar resultados previos
+    document.querySelectorAll('.verif-res').forEach(function(el) { el.textContent = ''; el.className = 'verif-res'; });
+    document.querySelectorAll('.verif-esperado').forEach(function(el) { el.style.display = 'none'; el.textContent = ''; });
+    document.querySelectorAll('.verif-input, .tabla-input').forEach(function(el) { el.classList.remove('correcto','incorrecto'); });
+  }
+
+  function verificar(d) {
+    const esp = calcularEsperados(d);
+    const pppracFilas = esp.pppracFilas;
+    const pppepcFilas = esp.pppepcFilas;
+
+    // Grupo A
+    ['ilc','ils','abc','acv','pcv','ap','ppc','cob','con','ct'].forEach(function(k) {
+      marcar(k, esp[k]);
+    });
+
+    // Grupo B: PPPRAC
+    pppracFilas.forEach(function(f, i) {
+      marcarTabla('ppprac-p' + i, f.peso);
+      marcarTabla('ppprac-d' + i, f.dias);
+      marcarTabla('ppprac-r' + i, f.res);
+    });
+    marcarTabla('ppprac-total', esp.pppracTotal);
+
+    // Grupo C: PPPEPC
+    pppepcFilas.forEach(function(f, i) {
+      marcarTabla('pppepc-p' + i, f.peso);
+      marcarTabla('pppepc-d' + i, f.dias);
+      marcarTabla('pppepc-r' + i, f.res);
+    });
+    marcarTabla('pppepc-total', esp.pppepcTotal);
+
+    // Grupo D
+    marcar('ln', esp.ln);
+
+    // Grupo E
+    ['ie','mvp','ii','fi'].forEach(function(k) { marcar(k, esp[k]); });
+
+    // Grupo F
+    ['rov','roe','roa','mdup','ract'].forEach(function(k) { marcar(k, esp[k]); });
+  }
+
+  function marcar(k, esperado) {
+    var inp = document.querySelector('.verif-input[data-id="'+k+'"]');
+    var res = document.querySelector('.verif-res[data-for="'+k+'"]');
+    var espEl = document.querySelector('.verif-esperado[data-esp="'+k+'"]');
+    if (!inp) return;
+    var val = parsear(inp.value);
+    if (isNaN(val)) {
+      inp.classList.add('incorrecto'); inp.classList.remove('correcto');
+      if (res) { res.textContent = '✗'; res.className = 'verif-res fail'; }
+      return;
+    }
+    var ok = cmp(esperado, val);
+    inp.classList.remove('correcto','incorrecto');
+    inp.classList.add(ok ? 'correcto' : 'incorrecto');
+    if (res) {
+      res.textContent = ok ? '✓' : '✗';
+      res.className = 'verif-res ' + (ok ? 'ok' : 'fail');
+    }
+    if (espEl) {
+      if (ok) { espEl.style.display = 'none'; }
+      else { espEl.textContent = '(esperado: ' + redondear(esperado).toFixed(4).replace('.',',') + ')'; espEl.style.display = 'inline'; }
+    }
+  }
+
+  function marcarTabla(k, esperado) {
+    var inp = document.querySelector('.tabla-input[data-id="'+k+'"]');
+    if (!inp) return;
+    var val = parsear(inp.value);
+    if (isNaN(val)) {
+      inp.classList.add('incorrecto'); inp.classList.remove('correcto');
+      return;
+    }
+    var ok = cmp(esperado, val);
+    inp.classList.remove('correcto','incorrecto');
+    inp.classList.add(ok ? 'correcto' : 'incorrecto');
+  }
+
+  function renderizar(d) {
+    tituloEjercicio.textContent = 'Ejercicio ' + d.A1 + ' / ' + d.A2 + ' — Unlimited S.A.';
+    construirBalance(d);
+    construirResultado(d);
+    construirCostos(d);
+    construirNotas(d);
+    var datosV = calcularEsperados(d);
+    datosV.pppracFilas = datosV.pppracFilas;
+    datosV.pppepcFilas = datosV.pppepcFilas;
+    d._verif = datosV;
+  }
+
+  let dActual = null;
+  let seedActual = null;
+
+  function ejecutarEjercicio(seed) {
+    if (seed === null || seed === undefined) {
+      seed = Math.floor(Math.random() * 900000) + 100000;
+      _rng = Math.random;
+    }
+    _rng = crearPRNG(seed);
+    seedActual = seed;
+    dActual = generar();
+    renderizar(dActual);
+    renderizarVerificacion(dActual);
+    seedInput.value = seed;
+  }
+
+  function mostrarEjercicio() {
+    pantallaInicio.style.display = 'none';
+    pantallaEjercicio.style.display = 'block';
+    btnFlotante.style.display = 'block';
+    menuLateral.style.display = 'flex';
+    seedBox.style.display = 'flex';
+    ejecutarEjercicio(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('btnIniciar').addEventListener('click', mostrarEjercicio);
+  document.getElementById('btnNuevo').addEventListener('click', mostrarEjercicio);
+  document.getElementById('btnNuevoAbajo').addEventListener('click', function() {
+    ejecutarEjercicio(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  document.getElementById('btnFlotante').addEventListener('click', function() {
+    window.print();
+  });
+
+  btnCargarSeed.addEventListener('click', function() {
+    var s = parseInt(seedInput.value.trim(), 10);
+    if (isNaN(s) || s <= 0) { alert('Ingresá una seed válida (número entero positivo).'); return; }
+    _rng = crearPRNG(s);
+    seedActual = s;
+    dActual = generar();
+    renderizar(dActual);
+    renderizarVerificacion(dActual);
+    seedInput.value = s;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  btnCopiarSeed.addEventListener('click', function() {
+    var s = seedInput.value.trim();
+    if (!s) return;
+    navigator.clipboard.writeText(s).then(function() {
+      btnCopiarSeed.textContent = 'Listo';
+      setTimeout(function() { btnCopiarSeed.textContent = 'Copiar'; }, 1200);
+    });
+  });
+
+  menuToggle.addEventListener('click', function() {
+    menuLinks.classList.toggle('abierto');
+  });
+  menuLinks.querySelectorAll('.menu-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      var target = document.getElementById(this.dataset.target);
+      if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      menuLinks.classList.remove('abierto');
+    });
+  });
+
+  btnVerificar.addEventListener('click', function() {
+    if (!dActual) return;
+    verificar(dActual);
+  });
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tooltip-btn');
+    if (!btn) return;
+    e.preventDefault();
+    btn.classList.toggle('activo');
+  });
+})();
+</script>
+
+</body>
+</html>
