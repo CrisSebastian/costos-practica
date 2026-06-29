@@ -50,6 +50,21 @@
     --correcto-bg: #0c2d1e;
     --incorrecto-bg: #3b1015;
   }
+  body.oscuro th,
+  body.oscuro .fila-seccion td,
+  body.oscuro .fila-total td,
+  body.oscuro .fila-total td.calc-num,
+  body.oscuro .fila-total td.detalle,
+  body.oscuro .header-bar h1,
+  body.oscuro .menu-link,
+  body.oscuro .verif-grupo-titulo,
+  body.oscuro .verif-tabla th,
+  body.oscuro .verif-tabla td.detalle {
+    color: var(--text) !important;
+  }
+  body.oscuro .fila-total td { border-top-color: var(--border-sep); border-bottom-color: var(--border-sep); }
+  body.oscuro th { border-bottom-color: var(--border-sep); }
+  body.oscuro .verif-tabla th { border-bottom-color: var(--border-sep); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
