@@ -555,6 +555,8 @@
   .btn-verificar:hover { background: #047857; }
   .btn-verificar:active { background: #065f46; }
 
+  #solucion { display: none; }
+
   @media print {
     @page { size: A4; margin: 10mm; }
     * { background: transparent !important; box-shadow: none !important; }
@@ -620,6 +622,21 @@
     .notas-contenido p { margin: 2pt 0; }
     .notas-contenido .var-num { color: #000; }
     .notas-contenido .calc-num { color: #000; }
+
+    #solucion { display: block !important; page-break-before: always; padding-top: 5mm; }
+    #solucion h2 { font-size: 12pt; font-weight: 700; margin-bottom: 4mm; padding-bottom: 2pt; border-bottom: 2pt solid #000; }
+    #solucion h3 { font-size: 9pt; font-weight: 700; margin: 3mm 0 2mm; }
+    #solucion p { font-size: 7.5pt; margin: 1.5pt 0; line-height: 1.5; }
+    #solucion .sol-tabla { width: 100%; border-collapse: collapse; font-size: 7pt; margin: 2mm 0; }
+    #solucion .sol-tabla th { font-size: 6.5pt; padding: 2pt 4pt; border-bottom: 1.2pt solid #000; color: #000; text-align: center; font-weight: 700; }
+    #solucion .sol-tabla td { padding: 1.5pt 4pt; border-bottom: 0.4pt solid #999; text-align: center; font-size: 7pt; }
+    #solucion .sol-tabla td.izq { text-align: left; }
+    #solucion .sol-tabla td.der { text-align: right; }
+    #solucion .sol-tabla tr.total td { font-weight: 700; border-top: 1.5pt solid #000; }
+    #solucion .sol-fila { display: flex; font-size: 7.5pt; padding: 1pt 0; }
+    #solucion .sol-fila .num { width: 22px; }
+    #solucion .sol-fila .nom { flex: 1; }
+    #solucion .sol-fila .val { text-align: right; width: 80px; }
   }
 </style>
 </head>
@@ -710,6 +727,11 @@
   </div>
 
   <button class="btn-flotante" id="btnFlotante" title="Imprimir / Descargar PDF">Imprimir</button>
+
+  <div id="solucion">
+    <h2>SOLUCIÓN — Verificación de Cálculos</h2>
+    <div id="solContenido"></div>
+  </div>
 </div>
 
 <script>
@@ -738,6 +760,7 @@
   const btnCopiarSeed = document.getElementById('btnCopiarSeed');
   const btnTema = document.getElementById('btnTema');
   const btnTemaInicio = document.getElementById('btnTemaInicio');
+  const solContenido = document.getElementById('solContenido');
 
   let _rng = Math.random;
 
@@ -1326,6 +1349,53 @@
     inp.classList.add(ok ? 'correcto' : 'incorrecto');
   }
 
+  function renderizarSolucion(d) {
+    var esp = d._verif || calcularEsperados(d);
+    var h = '';
+
+    h += '<h3>A — Análisis de Corto Plazo</h3>';
+    var aDatos = [
+      ['1','ILC',esp.ilc],['2','ILS',esp.ils],['3','ABC',esp.abc],
+      ['4','ACV',esp.acv],['5','PCV',esp.pcv],['6','AP',esp.ap],
+      ['7','PPC',esp.ppc],['8','COB',esp.cob],['9','CON',esp.con],
+      ['10','CT ($)',esp.ct]
+    ];
+    aDatos.forEach(function(r) {
+      h += '<div class="sol-fila"><span class="num">' + r[0] + '.</span><span class="nom">' + r[1] + '</span><span class="val">' + r[2].toFixed(4).replace('.',',') + '</span></div>';
+    });
+
+    h += '<h3>B — PPPRAC</h3>';
+    h += '<table class="sol-tabla"><thead><tr><th>Componente</th><th>Peso</th><th>Días</th><th>Resultado</th></tr></thead><tbody>';
+    esp.pppracFilas.forEach(function(f) {
+      h += '<tr><td class="izq">' + f.comp + '</td><td class="der">' + f.peso.toFixed(4).replace('.',',') + '</td><td>' + f.dias.toFixed(4).replace('.',',') + '</td><td class="der">' + f.res.toFixed(4).replace('.',',') + '</td></tr>';
+    });
+    h += '<tr class="total"><td class="izq">TOTAL PPPRAC</td><td>1,0000</td><td></td><td class="der">' + esp.pppracTotal.toFixed(4).replace('.',',') + '</td></tr></tbody></table>';
+
+    h += '<h3>C — PPPEPC</h3>';
+    h += '<table class="sol-tabla"><thead><tr><th>Componente</th><th>Peso</th><th>Días</th><th>Resultado</th></tr></thead><tbody>';
+    esp.pppepcFilas.forEach(function(f) {
+      h += '<tr><td class="izq">' + f.comp + '</td><td class="der">' + f.peso.toFixed(4).replace('.',',') + '</td><td>' + f.dias.toFixed(4).replace('.',',') + '</td><td class="der">' + f.res.toFixed(4).replace('.',',') + '</td></tr>';
+    });
+    h += '<tr class="total"><td class="izq">TOTAL PPPEPC</td><td>1,0000</td><td></td><td class="der">' + esp.pppepcTotal.toFixed(4).replace('.',',') + '</td></tr></tbody></table>';
+
+    h += '<h3>D — Liquidez Necesaria</h3>';
+    h += '<div class="sol-fila"><span class="nom">LN = PPPRAC / PPPEPC</span><span class="val">' + esp.ln.toFixed(4).replace('.',',') + '</span></div>';
+
+    h += '<h3>E — Análisis de Largo Plazo</h3>';
+    var eDatos = [['11','IE',esp.ie],['12','Meses Vta. Pasivo',esp.mvp],['13','II',esp.ii],['14','FI',esp.fi]];
+    eDatos.forEach(function(r) {
+      h += '<div class="sol-fila"><span class="num">' + r[0] + '.</span><span class="nom">' + r[1] + '</span><span class="val">' + r[2].toFixed(4).replace('.',',') + '</span></div>';
+    });
+
+    h += '<h3>F — Rentabilidad</h3>';
+    var fDatos = [['15','ROV',esp.rov],['16','ROE',esp.roe],['17','ROA',esp.roa],['18','Margen Du Pont',esp.mdup],['19','Rotación Activo',esp.ract]];
+    fDatos.forEach(function(r) {
+      h += '<div class="sol-fila"><span class="num">' + r[0] + '.</span><span class="nom">' + r[1] + '</span><span class="val">' + r[2].toFixed(4).replace('.',',') + '</span></div>';
+    });
+
+    solContenido.innerHTML = h;
+  }
+
   function renderizar(d) {
     tituloEjercicio.textContent = 'Ejercicio ' + d.A1 + ' / ' + d.A2 + ' — Unlimited S.A.';
     construirBalance(d);
@@ -1336,6 +1406,7 @@
     datosV.pppracFilas = datosV.pppracFilas;
     datosV.pppepcFilas = datosV.pppepcFilas;
     d._verif = datosV;
+    renderizarSolucion(d);
   }
 
   let dActual = null;
