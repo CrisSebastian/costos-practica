@@ -1076,7 +1076,7 @@
     contenidoNotas.innerHTML = html;
   }
 
-  function redondear(v) { return Math.round(v * 10000) / 10000; }
+  function t4(v) { return Math.trunc(v * 10000) / 10000; }
   function parsear(s) {
     if (!s || s.trim() === '') return NaN;
     return parseFloat(s.trim().replace(',', '.'));
@@ -1093,45 +1093,81 @@
     const comprasCred = d.compras1 * (100 - d.pctComprasContado) / 100;
     const bait = d.resultado1 + d.intereses1_r;
 
-    const ilc  = d.ac1 / d.pc1;
-    const ils  = (d.ac1 - d.bCambio1) / d.pc1;
-    const abc  = smMerc > 0 && d.cv1 > 0 ? 365 * smMerc / d.cv1 : 0;
-    const acv  = smCred > 0 && vtasCred > 0 ? 365 * smCred / vtasCred : 0;
-    const pcv  = smCred > 0 && d.ventas1_r > 0 ? 365 * smCred / d.ventas1_r : 0;
-    const ap   = smDeudas > 0 && comprasCred > 0 ? 365 * smDeudas / comprasCred : 0;
-    const ppc  = smDeudas > 0 && d.compras1 > 0 ? 365 * smDeudas / d.compras1 : 0;
-    const cob  = abc + pcv;
-    const con  = cob - ppc;
-    const ct   = d.ac1 - d.pc1;
+    const ilc  = t4(d.ac1 / d.pc1);
+    const ils  = t4((d.ac1 - d.bCambio1) / d.pc1);
+    const ct   = t4(d.ac1 - d.pc1);
 
-    // PPPRAC
+    // ABC: step-wise: trunc(CV/SM a 4 dec), luego trunc(365 / ese)
+    const abc_div = (smMerc > 0 && d.cv1 > 0) ? d.cv1 / smMerc : 0;
+    const abc = abc_div > 0 ? t4(365 / t4(abc_div)) : 0;
+
+    // ACV: step-wise
+    const acv_div = (smCred > 0 && vtasCred > 0) ? vtasCred / smCred : 0;
+    const acv = acv_div > 0 ? t4(365 / t4(acv_div)) : 0;
+
+    // PCV: step-wise
+    const pcv_div = (smCred > 0 && d.ventas1_r > 0) ? d.ventas1_r / smCred : 0;
+    const pcv = pcv_div > 0 ? t4(365 / t4(pcv_div)) : 0;
+
+    // AP: step-wise
+    const ap_div = (smDeudas > 0 && comprasCred > 0) ? comprasCred / smDeudas : 0;
+    const ap = ap_div > 0 ? t4(365 / t4(ap_div)) : 0;
+
+    // PPC: step-wise
+    const ppc_div = (smDeudas > 0 && d.compras1 > 0) ? d.compras1 / smDeudas : 0;
+    const ppc = ppc_div > 0 ? t4(365 / t4(ppc_div)) : 0;
+
+    const cob = t4(abc + pcv);
+    const con = t4(cob - ppc);
+
+    // PPPRAC — paso a paso
+    const pCaja  = t4(d.caja1 / d.ac1);
+    const pCred  = t4(d.creditos1 / d.ac1);
+    const pOtros = t4(d.otrosCreditos1 / d.ac1);
+    const pBC    = t4(d.bCambio1 / d.ac1);
+
+    const rCaja  = t4(pCaja * 0);
+    const rCred  = t4(pCred * acv);
+    const rOtros = t4(pOtros * d.diasOtrosCreditos);
+    const rBC    = t4(pBC * abc);
+
+    const pppracTotal = t4(rCaja + rCred + rOtros + rBC);
+
     const pppracFilas = [
-      { comp: 'Caja y Bancos',       valor: d.caja1,          peso: d.caja1/d.ac1,          dias: 0,                     res: 0 },
-      { comp: 'Créditos por Ventas', valor: d.creditos1,      peso: d.creditos1/d.ac1,      dias: acv,                   res: (d.creditos1/d.ac1)*acv },
-      { comp: 'Otros Créditos',      valor: d.otrosCreditos1, peso: d.otrosCreditos1/d.ac1, dias: d.diasOtrosCreditos,   res: (d.otrosCreditos1/d.ac1)*d.diasOtrosCreditos },
-      { comp: 'Bienes de Cambio',    valor: d.bCambio1,       peso: d.bCambio1/d.ac1,       dias: abc,                   res: (d.bCambio1/d.ac1)*abc }
+      { comp: 'Caja y Bancos',       valor: d.caja1,          peso: pCaja,  dias: 0,                   res: rCaja },
+      { comp: 'Créditos por Ventas', valor: d.creditos1,      peso: pCred,  dias: acv,                 res: rCred },
+      { comp: 'Otros Créditos',      valor: d.otrosCreditos1, peso: pOtros, dias: d.diasOtrosCreditos,  res: rOtros },
+      { comp: 'Bienes de Cambio',    valor: d.bCambio1,       peso: pBC,    dias: abc,                 res: rBC }
     ];
-    const pppracTotal = pppracFilas.reduce((s,f) => s + f.res, 0);
 
-    // PPPEPC
+    // PPPEPC — paso a paso
+    const pDeudas = t4(d.dComPC1 / d.pc1);
+    const pLab    = t4(d.dLab1 / d.pc1);
+    const pFisc   = t4(d.dFisc1 / d.pc1);
+
+    const rDeudas = t4(pDeudas * ap);
+    const rLab    = t4(pLab * 5);
+    const rFisc   = t4(pFisc * 20);
+
+    const pppepcTotal = t4(rDeudas + rLab + rFisc);
+
     const pppepcFilas = [
-      { comp: 'Deudas Comerciales', valor: d.dComPC1, peso: d.dComPC1/d.pc1, dias: ap,    res: (d.dComPC1/d.pc1)*ap },
-      { comp: 'Deudas Laborales',   valor: d.dLab1,   peso: d.dLab1/d.pc1,   dias: 5,     res: (d.dLab1/d.pc1)*5 },
-      { comp: 'Deudas Fiscales',    valor: d.dFisc1,  peso: d.dFisc1/d.pc1,  dias: 20,    res: (d.dFisc1/d.pc1)*20 }
+      { comp: 'Deudas Comerciales', valor: d.dComPC1, peso: pDeudas, dias: ap,  res: rDeudas },
+      { comp: 'Deudas Laborales',   valor: d.dLab1,   peso: pLab,    dias: 5,   res: rLab },
+      { comp: 'Deudas Fiscales',    valor: d.dFisc1,  peso: pFisc,   dias: 20,  res: rFisc }
     ];
-    const pppepcTotal = pppepcFilas.reduce((s,f) => s + f.res, 0);
 
-    const ln = pppepcTotal > 0 ? pppracTotal / pppepcTotal : 0;
+    const ln = t4(t4(pppracTotal) / t4(pppepcTotal));
 
-    const ie   = d.pn1 > 0 ? d.pt1 / d.pn1 : 0;
-    const mvp  = d.ventas1_r > 0 ? d.pt1 / (d.ventas1_r / 12) : 0;
-    const ii   = d.at1 > 0 ? d.anc1 / d.at1 : 0;
-    const fi   = d.anc1 > 0 ? d.pn1 / d.anc1 : 0;
-    const rov  = d.ventas1_r > 0 ? d.resultado1 / d.ventas1_r : 0;
-    const roe  = d.pn1 > 0 ? d.resultado1 / d.pn1 : 0;
-    const roa  = d.at1 > 0 ? bait / d.at1 : 0;
-    const mdup = d.ventas1_r > 0 ? bait / d.ventas1_r : 0;
-    const ract = d.at1 > 0 ? d.ventas1_r / d.at1 : 0;
+    const ie   = d.pn1 > 0 ? t4(d.pt1 / d.pn1) : 0;
+    const mvp  = d.ventas1_r > 0 ? t4(d.pt1 / t4(d.ventas1_r / 12)) : 0;
+    const ii   = d.at1 > 0 ? t4(d.anc1 / d.at1) : 0;
+    const fi   = d.anc1 > 0 && d.pn1 > 0 ? t4(d.pn1 / d.anc1) : 0;
+    const rov  = d.ventas1_r > 0 ? t4(d.resultado1 / d.ventas1_r) : 0;
+    const roe  = d.pn1 > 0 ? t4(d.resultado1 / d.pn1) : 0;
+    const roa  = d.at1 > 0 ? t4(bait / d.at1) : 0;
+    const mdup = d.ventas1_r > 0 ? t4(bait / d.ventas1_r) : 0;
+    const ract = d.at1 > 0 ? t4(d.ventas1_r / d.at1) : 0;
 
     return { ilc, ils, abc, acv, pcv, ap, ppc, cob, con, ct, ie, mvp, ii, fi, rov, roe, roa, mdup, ract,
              pppracFilas, pppracTotal, pppepcFilas, pppepcTotal, ln, bait };
@@ -1332,7 +1368,7 @@
     }
     if (espEl) {
       if (ok) { espEl.style.display = 'none'; }
-      else { espEl.textContent = '(esperado: ' + redondear(esperado).toFixed(4).replace('.',',') + ')'; espEl.style.display = 'inline'; }
+      else { espEl.textContent = '(esperado: ' + t4(esperado).toFixed(4).replace('.',',') + ')'; espEl.style.display = 'inline'; }
     }
   }
 
